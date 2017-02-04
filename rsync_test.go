@@ -38,16 +38,21 @@ func testTransfer(dir bool, mode bool, t *testing.T) {
 
 	c1, c2 := sockPair()
 
+	m1, m2 := Primary, Secondary
+	if mode {
+		m2, m1 = m1, m2
+	}
+
 	wg := sync.WaitGroup{}
 	wg.Add(2)
 	go func() {
-		err := Push(Secondary, c1, srcFile, TransferOpt{})
+		err := Push(m1, c1, srcFile, TransferOpt{})
 		assert.NoError(t, err)
 		wg.Done()
 	}()
 
 	go func() {
-		err := Pull(Primary, c2, destFile, TransferOpt{})
+		err := Pull(m2, c2, destFile, TransferOpt{})
 		assert.NoError(t, err)
 		wg.Done()
 	}()
