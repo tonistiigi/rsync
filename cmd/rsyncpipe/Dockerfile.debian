@@ -1,0 +1,13 @@
+from debian:jessie
+run apt-get update
+run apt-get install -y rsync golang git curl
+add rsyncpipe.go rsyncpipe-src/
+ENV GO_VERSION 1.7.5
+RUN curl -fsSL "https://golang.org/dl/go${GO_VERSION}.linux-amd64.tar.gz" \
+	| tar -xzC /usr/local
+
+ENV PATH /go/bin:/usr/local/go/bin:$PATH
+ENV GOPATH /go
+run go get -d ./rsyncpipe-src
+run go build -o /bin/rsyncpipe ./rsyncpipe-src
+entrypoint ["rsyncpipe"]

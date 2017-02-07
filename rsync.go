@@ -94,7 +94,9 @@ func primary(conn io.ReadWriteCloser, localFile string, opt TransferOpt, sender 
 }
 
 func secondary(conn io.ReadWriteCloser, localFile string, opt TransferOpt, sender bool) error {
-	args := []string{"rsync", "--server", "-logDtpr"}
+	// args := []string{"rsync", "--server", "-logDtpre.iLsfx"}
+	args := []string{"rsync", "--server", "-logDtpre.iLsfxC"}
+
 	if sender {
 		args = append(args, "--sender", ".", localFile)
 	} else {

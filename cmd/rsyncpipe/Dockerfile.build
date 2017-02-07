@@ -1,6 +1,6 @@
 from alpine
 run apk update
-run apk add g++ make curl perl
+run apk add g++ make curl perl go git
 workdir /root
 run curl -O https://download.samba.org/pub/rsync/src/rsync-3.1.2.tar.gz
 run tar xvf rsync-3.1.2.tar.gz
@@ -8,3 +8,8 @@ workdir /root/rsync-3.1.2
 env CFLAGS="-static"
 run ./configure
 run make
+add rsyncpipe.go rsyncpipe-src/
+add Dockerfile .
+env GOPATH /go
+run go get -d ./rsyncpipe-src
+run go build --ldflags '-extldflags "-static"' -o rsyncpipe ./rsyncpipe-src
