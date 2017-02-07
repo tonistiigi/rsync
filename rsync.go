@@ -61,12 +61,12 @@ func primary(conn io.ReadWriteCloser, localFile string, opt TransferOpt, sender 
 	foutPath := filepath.Join(tmpDir, "stdout")
 	fin, err := fifo.OpenFifo(context.Background(), finPath, syscall.O_CREAT|syscall.O_NONBLOCK|syscall.O_RDONLY, 0600)
 	if err != nil {
-		return errors.Wrapf(err, "failed to create %s", finPath)
+		return errors.Wrapf(err, "failed to open %s", finPath)
 	}
 	defer fin.Close()
 	fout, err := fifo.OpenFifo(context.Background(), foutPath, syscall.O_CREAT|syscall.O_NONBLOCK|syscall.O_WRONLY, 0600)
 	if err != nil {
-		return errors.Wrapf(err, "failed to create %s", foutPath)
+		return errors.Wrapf(err, "failed to open %s", foutPath)
 	}
 	defer fout.Close()
 
@@ -77,7 +77,6 @@ func primary(conn io.ReadWriteCloser, localFile string, opt TransferOpt, sender 
 	} else {
 		args = append(args, remote, localFile)
 	}
-
 	cmd := exec.Command(args[0], args[1:]...)
 	cmd.Env = append(os.Environ(),
 		"GORSYNC_FIFO_STDIN="+finPath,
@@ -94,14 +93,11 @@ func primary(conn io.ReadWriteCloser, localFile string, opt TransferOpt, sender 
 }
 
 func secondary(conn io.ReadWriteCloser, localFile string, opt TransferOpt, sender bool) error {
-	// args := []string{"rsync", "--server", "-logDtpre.iLsfx"}
-	args := []string{"rsync", "--server", "-logDtpre.iLsfxC"}
-
+	args := []string{"rsync", "--server"}
 	if sender {
-		args = append(args, "--sender", ".", localFile)
-	} else {
-		args = append(args, ".", localFile)
+		args = append(args, "--sender")
 	}
+	args = append(args, "-logDtpre.iLsfx", ".", localFile)
 	cmd := exec.Command(args[0], args[1:]...)
 	cmd.Stdin = conn
 	cmd.Stdout = conn
@@ -148,7 +144,7 @@ func runPrimaryInit() error {
 		}
 	}()
 	go func() {
-		_, err = io.Copy(os.Stdout, fout)
+		_, err = copyBuffer(os.Stdout, fout, nil)
 		errs <- err
 	}()
 
