@@ -70,7 +70,7 @@ func primary(conn io.ReadWriteCloser, localFile string, opt TransferOpt, sender 
 	}
 	defer fout.Close()
 
-	args := []string{"rsync", "-ar", "-e", naiveSelf()}
+	args := []string{"rsync", "--blocking-io", "-ar", "-e", naiveSelf()}
 	remote := "localhost:"
 	if sender {
 		args = append(args, localFile, remote)
@@ -144,7 +144,7 @@ func runPrimaryInit() error {
 		}
 	}()
 	go func() {
-		_, err = copyBuffer(os.Stdout, fout, nil)
+		_, err = io.Copy(os.Stdout, fout)
 		errs <- err
 	}()
 
